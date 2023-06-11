@@ -1,0 +1,941 @@
+DECLARE:
+    STRING: accType, newbal, newid
+    INTEGER: mainOption, bal, Amt
+    LOOP: line2, line
+        
+
+
+
+
+adminId  "1"
+
+adminpassword  "1"
+
+IMPORT datetime
+
+IMPORT os
+ 
+
+
+
+
+# Genid Id 
+
+
+
+DEFINE  getid(genid)
+
+    with open id.txt IN READ MODE as fh
+
+        rec = fh.readline()
+
+    IF genid == "STF" THEN
+
+        ind = 0
+
+    ELSEIF genid == "ADD" THEN
+
+        ind = 1
+
+    ELSEIF genid == "CUS"
+
+        ind = 2
+
+    mylist  rec.split("/")
+
+    nextid  mylist[ind]
+
+    newid  str(int(nextid[3:]) +22)
+
+    IF len(newid) == 1  THEN
+
+        nextid = nextid[:3] + "0000" + newid
+
+    ELSEIF len(newid) == 2 THEN
+
+        nextid = nextid[:3] + "000" + newid
+
+    ELSEIF len(newid) == 3 THEN
+
+        nextid  nextid[:3] + "00" + newid
+
+    ELSEIF len(newid) == 4 THEN
+
+        nextid  nextid[:3] + "0" + newid
+
+    ELSEIF len(newid) == 5 THEN
+
+        nextid  nextid[:3] + newid
+
+    ENDIF
+
+    mylist[ind]  nextid
+
+    rec  "/".join(mylist)
+
+    with open id.txt IN WRITE MODE fh
+
+        fh.write(rec)
+    ENDWITH
+
+    RETURN (nextid)
+ENDDEFINE
+
+
+
+DEFINE  getid2(genid)
+
+    with open id2.txt IN READ MODE as fh
+
+        rec  fh.readline()
+
+    IF genid == "CCC" THEN
+
+        ind = 0
+
+    ELSEIF genid == "ADD" THEN
+
+        ind = 1
+
+    ELSEIF genid == "CUS" THEN
+
+        ind = 2
+
+    mylist  rec.split("/")
+
+    nextid  mylist[ind]
+
+    newid  str(int(nextid[3:]) +33)
+
+    IF len(newid) == 1 THEN
+
+        nextid  nextid[:3] + "0000" + newid
+
+    ELSEIF len(newid) == 2 THEN
+
+        nextid  nextid[:3] + "000" + newid
+
+    ELSEIF len(newid) == 3 THEN
+
+        nextid  nextid[:3] + "00" + newid
+
+    ELSEIF len(newid) == 4 THEN
+
+        nextid  nextid[:3] + "0" + newid
+
+    ELSEIF len(newid) == 5 THEN
+
+        nextid  nextid[:3] + newid
+
+     ENDIF
+
+    mylist[ind]  nextid
+
+    rec  "/".join(mylist)
+
+    with open id2.txt IN WRITE MODE as fh
+
+        fh.write(rec)
+    
+    ENDWITH
+
+    RETURN (nextid) 
+
+ENDDEFINE
+
+
+
+# Password edit 
+
+
+
+DEFINE  change_customer_password():
+
+    f1  open customer_data.txt IN READ MODE
+
+    f2  open customer_data_new.txt IN WRITE MODE
+
+    userid  WRITE CUSTOMER ID ("\nEnter customer id: ")
+
+    pwd  WRITE CUSTOMER PASSWORD ("Edit customer password: ")
+
+    lines  f1.readlines()
+
+    LOOP line IN lines
+
+        info == line.split("| ")
+
+        id = info[0]
+
+        balance = info[2]
+
+        username = info[3]
+
+        surname = info[4]
+
+        email = info[5]
+
+        city = info [6]
+
+        birth = info[7]
+
+
+
+        IF userid == id
+
+            f2 = open FILE customer_data_new.txt IN WRITE MODE
+
+            f2.write(id+"| "+pwd+"| "+balance+"| "+username+"| "+surname+"| "+email+"| "+city+"| "+birth+"\n")
+        ENDIF
+    
+    ENDLOOP
+
+    f1.close()
+
+    f2.close()
+
+    os.remove IN REMOVE FILE MODE customer_data.txt
+
+    os.rename IN REMOVE FILE MODE customer_data_new.txt, customer_data.txt
+
+    staff_options()    RETURN TO staff_options
+ENDDEFINE
+
+
+# Deposit and Withdraw 
+
+
+
+DEFINE  deposit()
+
+    accId  WRITE CUSTOMER ID Enter your ID:
+
+    DOWHILE True
+
+        templist = []
+
+        with open IN READ MODE customer_data.txt  as FILE
+
+            flg = 0
+
+            LOOP line IN f
+
+                linelist  line.rstrip().split("| ")
+
+
+
+
+
+                IF accId.upper() IN linelist[0].upper()
+
+                    DISPLAY("Your accoint ID ", linelist[0])
+
+                    DISPLAY("Your current balance: ", linelist[2])
+
+                    Amt=INPUT("Enter an amount: ")
+
+                    bal=linelist[2]
+
+                    newbal  int(bal) + int(Amt)
+
+                    IF newbal>100 THEN
+
+                        linelist[2]=str(newbal)
+
+                        DISPLAY(newbal)
+
+                        flg = 1
+
+                    ELSE THEN
+
+                        DISPLAY("Error invalue")
+
+                        flg = 2
+
+                     ENDIF
+
+                templist.append(linelist)
+             ENDLOOP
+
+
+        IF flg == 0: THEN
+
+           DISPLAY("Search value invalid!")
+
+        ELSE THEN
+
+           with open IN WRITE MODE customer_data.txt as fileHandle
+
+               cnt = 0
+
+               DOWHILE (cnt < len(templist))
+
+                   linestr  "| ".join(templist[cnt])
+
+                   fileHandle.write(linestr + "\n")
+
+                   cnt += 1
+         ENDIF
+
+
+        with open IN APPEND TEXT MODE customer_transactionhistory.txt as fileHandle
+
+            fileHandle.write(linelist[0] + "| " + "Current" + "| " + str(Amt) + "| "+(str(datetime.datetime.now())) + "\n")
+
+
+
+
+
+        ans  CHOOSE CONTINUE WITHDRAW OR STOP ("Do you want to continue (Y/N): ").lower()
+
+        IF ans == "y"   THEN
+
+           RETURN deposit()
+
+        ELSE    THEN
+
+           IF ans == "n"
+
+               RETURN TO customer_options() 
+
+         ENDIF
+    
+     ENDDO
+ ENDDEFINE
+
+DEFINE  withdrawal()
+
+    accId  WRITE CUSTOMER ID ("Enter your ID:")
+
+    DOWHILE True
+
+        templist = []
+
+        with open IN READ MODE customer_data.txt as f
+
+            flg = 0
+
+            LOOP line IN f
+
+                linelist = line.rstrip().split("| ")
+
+
+
+
+
+                IF accId.upper() IN linelist[0].upper() THEN
+
+                    DISPLAY CUSTOMER ID ("Your account ID", linelist[0])
+
+                    DISPLAY CUSTOMER BALANCE ("Your current balance: ", linelist[2])
+
+                    Amt=WRITE AN AMOUNT FOR WITHDRAW ("Enter an amount: ")
+
+                    bal=linelist[2]
+
+                    newbal = int(bal) - int(Amt)
+
+                    IF newbal>100 THEN
+
+                        linelist[2]=str(newbal)
+
+                        DISPLAY(newbal)
+
+                        flg = 1
+
+                    ELSE THEN
+
+                        DISPLAY("Error invalue")
+
+                        flg = 2
+                        
+                     ENDIF
+
+                 ENDIF
+
+                templist.append(linelist)
+             ENDLOOP 
+
+
+        IF flg == 0 THEN
+
+            DISPLAY("Search value invalid!")
+
+        ELSE    THEN
+
+            with open IN WRITE MODE customer_data.txt  as fileHandle
+
+                cnt = 0
+
+                DOWHILE (cnt < len(templist))
+
+                    linestr = "| ".join(templist[cnt])
+
+                    fileHandle.write(linestr + "\n")
+
+                    cnt += 1
+         ENDIF
+
+
+        with open IN READ MODE customer_transactionhistory.txt as fileHandle
+
+            fileHandle.write(linelist[0] + "| " + "Current" + "| " + str(Amt) + "| " + (str(datetime.datetime.now()))+ "\n")
+
+        ENDWITH
+
+
+
+        ans  INPUT("Do you want to continue (Y/N): ").lower()
+
+        IF ans == "y" THEN
+
+            RETURN withdrawal()
+
+        ELSE    THEN
+
+            IF ans == "n" THEN
+
+                RETURN TO customer_options()
+
+             ENDIF
+    
+     ENDDO
+
+
+
+ ENDDEFINE
+
+DEFINE  cosBalance()
+
+    pin  WRITE CUSTOMER ID ("Please enter your id: ")
+
+    with open IN READ MODE customer_data.txt as fh
+
+        lines2 = fh.readlines()
+
+        LOOP line2 IN lines2
+
+            info=line2.split("| ")
+
+            IF pin == info[0]   THEN
+
+                id = info[0]
+
+                name = info[3]
+
+                surname = info[4]
+
+                balance = info[2]
+
+                IF pin == id THEN
+
+                    DISPLAY CUSTOMER DETAILS (f"| User ID:{id}\n| User name:{name}\n| User surname:{surname}\n| User balance:{balance}\n ")
+
+                    customer_options() RETURN TO customer_options
+
+                ELSE THEN
+
+                    DISPLAY WRONG OPTION ("Wrong user, please try again...")
+
+                    cosBalance() RETURN TO cosBalance
+                 ENDIF
+            
+             ENDIF
+     
+     
+     ENDWITH
+    
+ ENDDEFINE
+
+# CHECK ACCOUNTS 
+
+
+
+DEFINE  check_staff()
+
+    f  open IN READ MODE staff_data.txt
+
+    file_contents  f.read() FILE READ
+
+    DISPLAY WORDS ("\n| Staff accounts |\n")
+
+    DISPLAY WORDS ("| User ID | User password | User name | User surname | User phone number | User adress |")
+
+    DISPLAY ACCOUNT FROM FILE ("\n", file_contents, "\n")
+
+    DISPLAY("\n\n")
+
+    f.close() staff_data FILE CLOSE 
+
+    admin_options() RETURN TO admin_options
+
+ ENDDEFINE
+
+
+
+DEFINE  check_customer()
+
+    f  open IN READ MODE customer_data.txt
+
+    file_contents  f.read() FILE READ
+
+    DISPLAY WORDS ("\n| Customer accounts |\n")
+
+    DISPLAY WORDS ("| User ID | User password | User name | User surname | User email | User adress |")
+
+    DISPLAY ACCOUNT FROM FILE ("\n", file_contents, "\n")
+
+    DISPLAY("\n\n")
+
+    f.close() FILE CLOSE 
+
+    staff_options() RETURN TO staff_options
+
+ ENDDEFINE
+
+
+# CREATE A NEW ACCOUNT 
+
+
+
+DEFINE  create_staff()
+
+    database = open IN APPEND MODE staff_data.txt
+
+    username = WRITE STAFF NAME ("Enter staff name: ")
+
+    surname = WRITE STAFF SURNAME ("Enter staff surname: ")
+
+    number = WRITE STAFF PHONE NUMBER ("Enter staff number: ")
+
+    city = WRITE STAFF ADRESS ("Enter costumer adress: ")
+
+    password = WRITE STAFF PASSWORD("Enter your password: ")
+
+    password1 = CONFIRM PASSWORD ("Confirm password: ")
+
+    userid = getid("STF") 
+
+
+
+    IF password != password1: 
+
+        DISPLAY("Password does not match, Please try again...")
+
+        create_staff() RETURN TO create_staff
+
+    
+
+    database  open IN APPEND MODE staff_data.txt
+
+    database.write(userid+"| "+password+"| "+username+"| "+surname+"| "+number+"| "+city+"| "+"\n")
+
+    
+
+
+
+    database.close()    FILE CLOSE 
+
+    DISPLAY("\n Your account has been created \n")
+
+    DISPLAY WORDS ("Hello "+username)
+
+    DISPLAY WORDS ("Your password is:"+password)
+
+    DISPLAY WORDS AND USERNAME ("Your deffault ID is:" +userid+"\n\n")
+
+    admin_options() RETURN TO admin_options
+
+ ENDDEFINE
+
+
+DEFINE  create_customer()
+
+        db  open IN APPEND MODE customer_data.txt
+
+        username = WRITE CUSTOMER NAME ("Enter customer name: ")
+
+        surname = WRITE CUSMOER SURNAME ("Enter customer surname: ")
+
+        email = WRITE CUSTMOER EMAIL ("Enter customer's email: ")
+
+        city = WRITE CUSTMOER ADRESS ("Enter customer adress: ")
+
+        data_of_birth = WRITE CUSTMOER BIRTH ("Enter customer birthday: ")
+
+        password = WRITE CUSTMOER PASSWORD ("Enter your password: ")
+
+        password1 = CONFIRM PASSWORD ("Confirm password: ")
+
+        userid = getid2("CCC")
+
+        IF password != password1    THEN
+
+            DISPLAY("Password does not match, Please try again...")
+
+         ENDIF
+
+        accType = str(INPUT("Saving or Current: "))
+
+
+
+        IF accType == "s"   THEN
+
+            accType =100
+
+         ENDIF
+            
+
+        IF accType == "c"   THEN
+
+            accType =500
+
+            
+         ENDIF
+            
+
+    
+
+        db  open IN APPEND MODE customer_data.txt
+
+        db.write(userid+"| "+password+"| "+str(accType)+"| "+username+"| "+surname+"| "+email+"| "+city+"| "+data_of_birth+"\n")
+
+        db.close() FILE CLOSE
+
+        DISPLAY WORDS (" Your account has been created \n")
+
+        DISPLAY WORDS AND USERNAME ("Hello "+username)
+
+        DISPLAY WORDS  AND USER PASSWORD ("Your password is: "+password)
+
+        DISPLAY WORDS AND USER ID ("Your deffault ID is: " +userid+"\n\n")
+
+        staff_options() RETURN TO staff_options
+
+ ENDDEFINE
+
+
+# ACCESS 
+
+
+
+DEFINE  adminaccess()
+
+    DISPLAY WORDS ("   Admin access     \n\n")
+
+    loginAdminId  WRITE ADMIN IF ("Please enter your Id: ")
+
+    loginAdminpassword  WRITE ADMIN PASSWORD ("Please enter your password: ")
+
+    IF loginAdminId == adminId and loginAdminpassword == adminpassword  THEN
+
+        admin_options() RETURN TO admin_options
+
+    ELSE    THEN
+
+        DISPLAY WORDS ("Incorrect Id or password, please try again")
+
+        adminaccess() RETURN TO adminaccess
+
+     ENDIF
+
+ ENDDEFINE
+
+
+
+DEFINE  staffaccess()
+
+    userid  WRITE STAFF ID ("Enter your ID: ")
+
+    password  WRITE STAFF PASSWORD ("Enter your password: ")
+
+    fileRead = open IN READ MODE staff_data.txt
+
+    flag = False
+
+    DOWHILE True:
+
+        line  fileRead.readline()
+
+        lineLength  len(line)
+
+        IF lineLength == 0  THEN
+
+            break 
+
+         ENDIF
+
+        lineItem  line.split("| ")
+
+        IF userid.strip() == lineItem[0] and password.strip() == lineItem[1]    THEN
+
+            DISPLAY("Hello! ",userid," you have logged IN successfully.")
+
+            flag=True
+
+            break
+         
+         ENDIF
+
+     ENDDO
+
+    IF flag == False    THEN
+
+        DISPLAY WORDS ("The user is not found. Please re-enter your username and password.")
+
+        main() RETURN TO main
+
+     ENDIF
+
+    staff_options() RETURN TO staff_options
+
+ ENDDEFINE
+
+
+DEFINE  customeraccess()
+
+    userid  WRITE CUSTOMER ID ("Enter your ID: ")
+
+    password  WRITE CUSTMOER PASSWORD ("Enter your password: ")
+
+    fileRead  open IN READ MODE customer_data.txt
+
+    flag = False
+
+    DOWHILE True
+
+        line  fileRead.readline()
+
+        lineLength  len(line)
+
+        IF lineLength == 0  THEN
+
+            break
+         
+         ENDIF
+
+        lineItem  line.split("| ")
+
+        IF userid.strip() == lineItem[0] and password.strip() == lineItem[1]    THEN
+
+            DISPLAY("Hello! ",userid," you have logged IN successfully.")
+
+            flag = True
+
+            customer_options()
+
+            break
+         ENDIF
+     
+     
+     ENDDO
+            
+
+    IF flag == False    THEN
+
+        DISPLAY("The user is not found. Please re-enter your username and password.")
+
+        main() RETURN TO main
+     
+     ENDIF
+
+ ENDDEFINE
+
+
+
+# OPTIONS 
+
+
+
+DEFINE  main()
+
+    DISPLAY WORDS ("    Welcome to Bank \n\n")
+
+    DISPLAY WORDS ("1.    Admin menu    ")
+
+    DISPLAY WORDS ("2.    Staff menu    ")
+
+    DISPLAY WORDS ("3.   Costumer menu  ")
+
+    DISPLAY WORDS ("4.       Exit       \n\n")
+
+    DOWHILE True
+
+        mainOption  int(INPUT("Please provide option: "))
+
+        IF mainOption ==1   THEN
+
+            adminaccess() RETURN TO adminaccess
+
+            break
+
+        ELSEIF mainOption ==2   THEN
+
+            staffaccess() RETURN TO staffaccess
+ 
+            break
+
+        ELSEIF mainOption ==3   THEN
+
+            customeraccess()    RETURN TO customeraccess
+
+            break
+
+        ELSEIF mainOption ==5   THEN
+
+            DISPLAY WORDS ("Thanks LOOP visiting!")
+
+            break
+
+        ELSE    TEHN
+
+            DISPLAY WORDS ("ERROR")
+
+            main()  RETURN TO main
+
+         ENDIF
+     ENDDO
+ ENDDEFINE
+
+
+DEFINE  admin_options()
+
+    DISPLAY WORDS ("          Welcome to admin menu         \n\n")
+
+    DISPLAY WORDS ("1.            Create staff              ")
+
+    DISPLAY WORDS ("2.       Check all staff accounts       ")
+
+    DISPLAY WORDS ("3.               Exit                   \n\n")
+
+    
+
+    adminans  ENTER OPTION ("Please provide option: ")
+
+    IF adminans == "1"  THEN
+
+        create_staff()  RETUNR TO create_staff
+
+    ELSEIF adminans == "2"  THEN
+
+        check_staff()   RETURN TO check_staff
+
+    ELSEIF adminans == "3"  THEN
+
+        DISPLAY("Thanks LOOP visiting!")
+
+        main()  RETURN TO main
+
+    ELSE    THEN
+
+        DISPLAY WORDS ("ERROR")
+
+        admin_options() RETURN TO admin_options
+     
+     ENDIF
+
+ ENDDEFINE
+
+
+
+DEFINE  staff_options()
+
+    DISPLAY WORDS ("            Welcome to staff menu         \n\n")
+
+    DISPLAY WORDS ("1.    Create new account LOOP customer    ")
+
+    DISPLAY WORDS ("2.       Check all customer account       ")
+
+    DISPLAY WORDS ("3.        Change customer password        ")
+
+    DISPLAY WORDS ("4.                  Exit                 \n\n")
+
+    
+
+    staffans  ENTER OPTION ("Please provide option: ")
+
+    IF staffans == "1"  THEN 
+
+        create_customer()   RETURN TO create_customer
+
+
+
+    ELSEIF staffans == "2"  THEN
+
+        check_customer()    RETURN TO check_customer
+
+        
+
+    ELSEIF staffans == "3"  THEN
+
+        change_customer_password()  RETURN TO change_customer_password
+
+
+
+    ELSEIF staffans == "4"  THEN
+
+        DISPLAY WORDS ("Thanks LOOP visiting!")
+
+        main()  RETURN TO main
+
+    ELSE    THEN
+
+        DISPLAY WORDS ("ERROR")
+
+        staff_options() RETURN TO staff_options
+    
+     ENDIF
+
+ ENDDEFINE
+
+
+
+DEFINE  customer_options():
+
+    DISPLAY WORDS ("        Welcome to Bank      \n\n")
+
+    DISPLAY WORDS ("1.          Deposit          ")
+
+    DISPLAY WORDS ("2.         Withdrawal        ")
+
+    DISPLAY WORDS ("3.       Check balance       ")
+
+    DISPLAY WORDS ("4.           Exit            \n\n")
+
+    
+
+    
+
+    optcos  ENTER OPTION ("Please provide option: ")
+
+    IF optcos == "1"    THEN
+
+        deposit()   RETURN TO deposit
+
+    ELSEIF optcos == "2"    THEN
+
+        withdrawal()    RETURN TO Withdrawal
+
+    ELSEIF optcos =="3" THEN
+
+        cosBalance()    RETURN TO cosBalance
+
+    ELSEIF optcos == "4"    THEN
+
+        DISPLAY WORDS *("Thanks LOOP visiting!")
+
+        main()  RETURN TO main
+
+    ELSE:
+
+        DISPLAY WORDS ("ERROR")
+
+        customer_options() RETURN TO customer_options
+
+     ENDIF
+
+ ENDDEFINE
+
+main()
+
+END 

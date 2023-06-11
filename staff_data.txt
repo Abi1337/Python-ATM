@@ -1,0 +1,3 @@
+STF00037| 123| Anuarbek| Tuleushov| 87012218090| KL| 
+STF00052| 123| Anuarbek| Tuleushov| 7012218090| sdvxc| 
+STF00067| | | | | | 
